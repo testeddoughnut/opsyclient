@@ -9,9 +9,11 @@ from opsyclient.utils import email_format
 
 class OpsyClient(SwaggerClient):
 
-    def __init__(self, url, user_name=None, password=None, force_renew=False):
+    def __init__(self, url, user_name=None, password=None, force_renew=False,
+                 use_models=True):
         self.url = url
         self.authenticated = False
+        self.use_models = use_models
 
         # This next part pretty much just goes through the motions of what
         # from_url() does in the parent class.
@@ -25,7 +27,8 @@ class OpsyClient(SwaggerClient):
         # Now we can create the spec client
         config = {
             'include_missing_properties': False,
-            'formats': [email_format]
+            'formats': [email_format],
+            'use_models': self.use_models
         }
         # Apply bravado config defaults
         bravado_config = bravado_config_from_config_dict(config)
@@ -47,7 +50,11 @@ class OpsyClient(SwaggerClient):
         body = {'user_name': user_name,
                 'password': password,
                 'force_renew': force_renew}
-        token = self.login.create_login(body=body).response().result.token
+        if self.use_models:
+            token = self.login.create_login(body=body).response().result.token
+        else:
+            token = self.login.create_login(
+                body=body).response().result['token']
         # in the future we should probably create our own authenticator
         # class that's intelligent enough to re-auth, but for now we can
         # just use the built in api key class from bravado through set_api_key.
