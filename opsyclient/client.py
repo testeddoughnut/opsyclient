@@ -4,11 +4,12 @@ from bravado.config import bravado_config_from_config_dict
 from bravado.requests_client import RequestsClient
 from bravado.swagger_model import Loader
 from bravado_core.spec import Spec
+from opsyclient.utils import email_format
 
 
 class OpsyClient(SwaggerClient):
 
-    def __init__(self, url, user_name=None, password=None):
+    def __init__(self, url, user_name=None, password=None, force_renew=False):
         self.url = url
         self.authenticated = False
 
@@ -23,7 +24,8 @@ class OpsyClient(SwaggerClient):
         spec_dict = loader.load_spec(spec_url)
         # Now we can create the spec client
         config = {
-            'include_missing_properties': False
+            'include_missing_properties': False,
+            'formats': [email_format]
         }
         # Apply bravado config defaults
         bravado_config = bravado_config_from_config_dict(config)
@@ -38,11 +40,13 @@ class OpsyClient(SwaggerClient):
 
         # Go ahead and auth if we were passed creds.
         if user_name and password:
-            self.authenticate(user_name, password)
+            self.authenticate(user_name, password, force_renew=force_renew)
 
-    def authenticate(self, user_name, password):
+    def authenticate(self, user_name, password, force_renew=False):
         host = urlsplit(self.url).hostname
-        body = {'user_name': user_name, 'password': password}
+        body = {'user_name': user_name,
+                'password': password,
+                'force_renew': force_renew}
         token = self.login.create_login(body=body).response().result.token
         # in the future we should probably create our own authenticator
         # class that's intelligent enough to re-auth, but for now we can
