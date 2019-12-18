@@ -25,7 +25,7 @@ def test_auth_success():
 
     def login_post_callback(request, uri, response_headers):
         """Make sure the request includes all the creds"""
-        request_body = json.loads(request.body)
+        request_body = json.loads(request.body.decode("utf-8"))
         assert request_body['user_name'] == 'admin'
         assert request_body['password'] == 'password'
         assert request_body['force_renew'] is False
@@ -69,7 +69,7 @@ def test_auth_success_force_renew():
 
     def login_post_callback(request, uri, response_headers):
         """Make sure the request includes all the creds"""
-        request_body = json.loads(request.body)
+        request_body = json.loads(request.body.decode("utf-8"))
         assert request_body['user_name'] == 'admin'
         assert request_body['password'] == 'password'
         assert request_body['force_renew'] is True
@@ -114,7 +114,7 @@ def test_auth_success_no_models():
 
     def login_post_callback(request, uri, response_headers):
         """Make sure the request includes all the creds"""
-        request_body = json.loads(request.body)
+        request_body = json.loads(request.body.decode("utf-8"))
         assert request_body['user_name'] == 'admin'
         assert request_body['password'] == 'password'
         assert request_body['force_renew'] is False

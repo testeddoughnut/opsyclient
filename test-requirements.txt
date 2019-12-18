@@ -3,7 +3,7 @@ Faker==2.0.0
 httpretty==0.9.6
 pycodestyle==2.4.0
 pydocstyle==3.0.0
-pylint==2.3.0
-pytest==5.0.1
+pylint>=1.9.5
+pytest>=4.6.7
 pytest-cov==2.7.1
 tox==3.13.2

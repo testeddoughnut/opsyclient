@@ -1,4 +1,6 @@
-from urllib.parse import urljoin, urlsplit
+from __future__ import absolute_import, print_function
+
+from six.moves.urllib.parse import urljoin, urlsplit
 from bravado.client import SwaggerClient
 from bravado.config import bravado_config_from_config_dict
 from bravado.requests_client import RequestsClient
@@ -39,7 +41,8 @@ class OpsyClient(SwaggerClient):
             spec_dict, origin_url=spec_url, http_client=self.http_client,
             config=config)
         # Now that we have the spec client we can init the parent class
-        super().__init__(swagger_spec, bravado_config.also_return_response)
+        super(OpsyClient, self).__init__(
+            swagger_spec, bravado_config.also_return_response)
 
         # Go ahead and auth if we were passed creds.
         if user_name and password:
@@ -69,5 +72,5 @@ class OpsyClient(SwaggerClient):
         # but we probably shouldn't hide everything.
         dir_keys = ['authenticate', 'authenticated', 'swagger_spec', 'url',
                     'get_model', 'http_client']
-        dir_keys.extend(super().__dir__())
+        dir_keys.extend(super(OpsyClient, self).__dir__())
         return dir_keys
