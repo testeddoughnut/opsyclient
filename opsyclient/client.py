@@ -1,16 +1,21 @@
-from urllib.parse import urljoin, urlsplit
+from __future__ import absolute_import, print_function
+
+from six.moves.urllib.parse import urljoin, urlsplit
 from bravado.client import SwaggerClient
 from bravado.config import bravado_config_from_config_dict
 from bravado.requests_client import RequestsClient
 from bravado.swagger_model import Loader
 from bravado_core.spec import Spec
+from opsyclient.utils import email_format
 
 
 class OpsyClient(SwaggerClient):
 
-    def __init__(self, url, user_name=None, password=None):
+    def __init__(self, url, user_name=None, password=None, force_renew=False,
+                 use_models=True):
         self.url = url
         self.authenticated = False
+        self.use_models = use_models
 
         # This next part pretty much just goes through the motions of what
         # from_url() does in the parent class.
@@ -23,7 +28,9 @@ class OpsyClient(SwaggerClient):
         spec_dict = loader.load_spec(spec_url)
         # Now we can create the spec client
         config = {
-            'include_missing_properties': False
+            'include_missing_properties': False,
+            'formats': [email_format],
+            'use_models': self.use_models
         }
         # Apply bravado config defaults
         bravado_config = bravado_config_from_config_dict(config)
@@ -34,16 +41,23 @@ class OpsyClient(SwaggerClient):
             spec_dict, origin_url=spec_url, http_client=self.http_client,
             config=config)
         # Now that we have the spec client we can init the parent class
-        super().__init__(swagger_spec, bravado_config.also_return_response)
+        super(OpsyClient, self).__init__(
+            swagger_spec, bravado_config.also_return_response)
 
         # Go ahead and auth if we were passed creds.
         if user_name and password:
-            self.authenticate(user_name, password)
+            self.authenticate(user_name, password, force_renew=force_renew)
 
-    def authenticate(self, user_name, password):
+    def authenticate(self, user_name, password, force_renew=False):
         host = urlsplit(self.url).hostname
-        body = {'user_name': user_name, 'password': password}
-        token = self.login.create_login(body=body).response().result.token
+        body = {'user_name': user_name,
+                'password': password,
+                'force_renew': force_renew}
+        if self.use_models:
+            token = self.login.create_login(body=body).response().result.token
+        else:
+            token = self.login.create_login(
+                body=body).response().result['token']
         # in the future we should probably create our own authenticator
         # class that's intelligent enough to re-auth, but for now we can
         # just use the built in api key class from bravado through set_api_key.
@@ -58,5 +72,5 @@ class OpsyClient(SwaggerClient):
         # but we probably shouldn't hide everything.
         dir_keys = ['authenticate', 'authenticated', 'swagger_spec', 'url',
                     'get_model', 'http_client']
-        dir_keys.extend(super().__dir__())
+        dir_keys.extend(super(OpsyClient, self).__dir__())
         return dir_keys

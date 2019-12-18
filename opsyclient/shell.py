@@ -1,3 +1,5 @@
+from __future__ import absolute_import, print_function
+
 import os
 from pprint import pprint
 from functools import partial, wraps
@@ -21,7 +23,8 @@ def common_params(func):
 
 @click.group(help='The Opsy client cli.')
 @click_option('--config', type=click.Path(), envvar='OPSY_CONFIG',
-              default=f'{os.path.expanduser("~")}/.config/opsy.ini',
+              default='{homedir}/.config/opsy.ini'.format(
+                  homedir=os.path.expanduser("~")),
               help='Config file for opsy.')
 @click_option('--url', '-U', envvar='OPSY_URL', help='Opsy base URL.')
 @click_option('--username', '-u', envvar='OPSY_USERNAME', help='Username.')

@@ -2,41 +2,91 @@
 #
 # Check https://circleci.com/docs/2.0/language-python/ for more details
 #
-version: 2
+version: 2.1
+
+workflows:
+  version: 2
+  main_workflow:
+    jobs:
+      - test_python27
+      - test_python35
+      - test_python36
+      - test_python37
+      - test_python38
+
 jobs:
-  build:
+  test_python27:
     docker:
-      # specify the version you desire here
-      # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
-      - image: circleci/python:3.6.1
-
+      - image: circleci/python:2.7
     working_directory: ~/repo
+    steps:
+      - common_setup:
+          python_version: "2.7"
+      - run_tests
+  test_python35:
+    docker:
+      - image: circleci/python:3.5
+    working_directory: ~/repo
+    steps:
+      - common_setup:
+          python_version: "3.5"
+      - run_tests
+  test_python36:
+    docker:
+      - image: circleci/python:3.6
+    working_directory: ~/repo
+    steps:
+      - common_setup:
+          python_version: "3.6"
+      - run_tests
+  test_python37:
+    docker:
+      - image: circleci/python:3.7
+    working_directory: ~/repo
+    steps:
+      - common_setup:
+          python_version: "3.7"
+      - run_tests
+  test_python38:
+    docker:
+      - image: circleci/python:3.8
+    working_directory: ~/repo
+    steps:
+      - common_setup:
+          python_version: "3.8"
+      - run_tests
 
+commands:
+
+  common_setup:
+    description: Common steps for all jobs
+    parameters:
+      python_version:
+          type: string
+          default: ""
     steps:
       - checkout
-
       # Download and cache dependencies
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "test-requirements.txt" }}
-            # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
-
+            - v1-dependencies-<< parameters.python_version >>-{{ checksum "requirements.txt" }}-{{ checksum "test-requirements.txt" }}
       - run:
           name: install dependencies
           command: |
-            python3 -m venv ~/venv
+            virtualenv ~/venv
             . ~/venv/bin/activate
             pip install tox
             tox --notest
-
       - save_cache:
           paths:
             - ~/repo/.tox
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "test-requirements.txt" }}
+          key: v1-dependencies-<< parameters.python_version >>-{{ checksum "requirements.txt" }}-{{ checksum "test-requirements.txt" }}
 
+  run_tests:
+    description: Run tests
+    steps:
       - run:
-          name: run tests
+          name: Run tests
           command: |
             . ~/venv/bin/activate
             tox
