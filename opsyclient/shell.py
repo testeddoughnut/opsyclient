@@ -59,7 +59,7 @@ def cli(ctx, config, url, username, password):
     ctx.obj = OpsyClient(url, user_name=username, password=password)
 
 ################################################################################
-## Zone Group ##
+## Zone Group # #
 ################################################################################
 @cli.group('zone')
 def zones_cli():
