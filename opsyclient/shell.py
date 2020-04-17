@@ -2,6 +2,7 @@ from __future__ import absolute_import, print_function
 
 import os
 import json
+import ipaddress
 from pprint import pprint
 from functools import partial, wraps
 
@@ -34,6 +35,14 @@ def validate_json(ctx, test_json):
         return json.loads(test_json)
     except json.decoder.JSONDecodeError:
         raise click.BadParameter("Unable to parse dictionary.")
+
+
+def validate_ip(ctx, test_ip):
+    """Callback to validate parameter is a valid IP address."""
+    try:
+        return str(ipaddress.ip_address(test_ip))
+    except ValueError:
+        raise click.BadParameter("Unable to parse IP address.")
 
 
 @click.group(help='The Opsy client cli.')
@@ -83,11 +92,14 @@ def zones_list(client, json, **kwargs):
 
 @zones_cli.command('add')
 @click.argument('zone_name')
+@click.option('--description', help="The zone description.")
+@click.option('--vars', help="A dictionary of zone vars.", callback=validate_json)
 @click.pass_obj
-def zones_add(client, zone_name):
+def zones_add(client, **kwargs):
     """Create a new zone."""
+    set_args = {k: v for k, v in kwargs.items() if v is not None}
     try:
-        pprint(client.zones.create_zone(zone_name).reponse().result)
+        pprint(client.zones.create_zone(**set_args).reponse().result)
     except HTTPError as err:
         error_handler('add zone', zone_name, err.code, err.reason)
 
@@ -158,7 +170,7 @@ def host_list(client, **kwargs):
 @click.argument('host_name')
 @click.argument('zone_id')
 @click.option('--device-id', '-d', help="External device identifier.")
-@click.option('--bmc-ip', '-b', help="IP of the BMC (aka DRAC/iLo/etc).")
+@click.option('--bmc-ip', '-b', help="IP of the BMC (aka DRAC/iLo/etc).", callback=validate_ip)
 @click.option('--vars', '-v', help="A dictionary of host vars.",
               callback=validate_json)
 @click.pass_obj
@@ -187,7 +199,7 @@ def host_delete(client, host_name_or_id):
 @click.option('--zone-id', '-z', help="The ID of the zone containing the host.")
 @click.option('--name', '-n', help="The name of the host.")
 @click.option('--device-id', '-d', help="External device identifier.")
-@click.option('--bmc-ip', '-b', help="IP of the BMC (aka DRAC/iLo/etc).")
+@click.option('--bmc-ip', '-b', help="IP of the BMC (aka DRAC/iLo/etc).", callback=validate_ip)
 @click.option('--vars', '-v', help="A dictionary of host vars.",
               callback=validate_json)
 @click.pass_obj
@@ -224,7 +236,7 @@ def host_group_mapping_show(client, host_name_or_id, group_name_or_id):
 @group_mapping_cli.command('list')
 @click.argument('host_name_or_id')
 @click.option('--id', '-i', help="HostGroupMapping ID to filter on.")
-@click.option('--gid', '-g', help="Group ID to filter on.")
+@click.option('--group-id', '-g', help="Group ID to filter on.")
 @click.option('--name', '-n', help="Group name to filter on.")
 @click.option('--priority', '-p', type=int, help="Priority to filter on.")
 @click.pass_obj
@@ -240,7 +252,7 @@ def host_group_mapping_list(client, host_name_or_id, **kwargs):
 @group_mapping_cli.command('add')
 @click.argument('host_name_or_id')
 @click.argument('group_id')
-@click.option('--priority', '-p', help="Set group mapping priority.")
+@click.option('--priority', '-p', type=int, help="Set group mapping priority.")
 def host_group_mapping_create(client, host_name_or_id, **kwargs):
     """Create a mapping from a host to a group."""
     set_args = {k: v for k, v in kwargs.items() if v is not None}
@@ -297,7 +309,7 @@ def group_cli():
 @click.option('--parent-name', help="Parent group name to filter on.")
 @click.option('--host-id', help="Host ID to filter on.")
 @click.option('--host-name', help="Host name to filter on.")
-@click.option('--default-priority', '-p', help="The default priority to filter on.")
+@click.option('--default-priority', '-p', type=int, help="The default priority to filter on.")
 @click.pass_obj
 def group_list(client, **kwargs):
     """List all groups, filterable."""
@@ -320,8 +332,8 @@ def group_show(client, group_id):
 @click.argument('name')
 @click.option('--zone-id', help="The ID of the zone for the group.")
 @click.option('--parent-id', help="The ID of the parent group.")
-@click.option('--default-priority', '-p', help="The default priority of the group.")
-@click.option('--vars', help="A dictionary of group vars.")
+@click.option('--default-priority', '-p', type=int, help="The default priority of the group.")
+@click.option('--vars', help="A dictionary of group vars.", callback=validate_json)
 @click.pass_obj
 def group_create(client, **kwargs):
     """Create a new group."""
@@ -337,8 +349,8 @@ def group_create(client, **kwargs):
 @click.option('--name', help="The group name.")
 @click.option('--zone-id', help="The ID of the zone for the group.")
 @click.option('--parent-id', help="The ID of the parent group.")
-@click.option('--default-priority', '-p', help="The default priority of the group.")
-@click.option('--vars', help="A dictionary of group vars.")
+@click.option('--default-priority', '-p', type=int, help="The default priority of the group.")
+@click.option('--vars', help="A dictionary of group vars.", callback=validate_json)
 @click.pass_obj
 def group_update(client, group_id, **kwargs):
     """Update a group."""
