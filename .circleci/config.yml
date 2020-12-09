@@ -4,57 +4,70 @@
 #
 version: 2.1
 
+references:
+  objectrocket-docker-auth: &objectrocket-docker-auth
+    auth:
+      username: ${DOCKER_USERNAME}
+      password: ${DOCKER_PASSWORD}
+  context-to-use: &context-to-use
+    context: objectrocket-shared
 workflows:
   version: 2
   main_workflow:
     jobs:
-      - test_python27
-      - test_python35
-      - test_python36
-      - test_python37
-      - test_python38
+    - test_python27: *context-to-use
+    - test_python35: *context-to-use
+    - test_python36: *context-to-use
+    - test_python37: *context-to-use
+    -
 
+      test_python38: *context-to-use
 jobs:
   test_python27:
     docker:
-      - image: circleci/python:2.7
+    - <<: *objectrocket-docker-auth
+      image: circleci/python:2.7
     working_directory: ~/repo
     steps:
-      - common_setup:
-          python_version: "2.7"
-      - run_tests
+    - common_setup:
+        python_version: '2.7'
+    - run_tests
   test_python35:
     docker:
-      - image: circleci/python:3.5
+    - <<: *objectrocket-docker-auth
+      image: circleci/python:3.5
     working_directory: ~/repo
     steps:
-      - common_setup:
-          python_version: "3.5"
-      - run_tests
+    - common_setup:
+        python_version: '3.5'
+    - run_tests
   test_python36:
     docker:
-      - image: circleci/python:3.6
+    - <<: *objectrocket-docker-auth
+      image: circleci/python:3.6
     working_directory: ~/repo
     steps:
-      - common_setup:
-          python_version: "3.6"
-      - run_tests
+    - common_setup:
+        python_version: '3.6'
+    - run_tests
   test_python37:
     docker:
-      - image: circleci/python:3.7
+    - <<: *objectrocket-docker-auth
+      image: circleci/python:3.7
     working_directory: ~/repo
     steps:
-      - common_setup:
-          python_version: "3.7"
-      - run_tests
+    - common_setup:
+        python_version: '3.7'
+    - run_tests
   test_python38:
     docker:
-      - image: circleci/python:3.8
+    - <<: *objectrocket-docker-auth
+      image: circleci/python:3.8
     working_directory: ~/repo
     steps:
-      - common_setup:
-          python_version: "3.8"
-      - run_tests
+    - common_setup:
+        python_version: '3.8'
+    - run_tests
 
 commands:
 
@@ -62,31 +75,33 @@ commands:
     description: Common steps for all jobs
     parameters:
       python_version:
-          type: string
-          default: ""
+        type: string
+        default: ''
     steps:
-      - checkout
+    - checkout
       # Download and cache dependencies
-      - restore_cache:
-          keys:
-            - v1-dependencies-<< parameters.python_version >>-{{ checksum "requirements.txt" }}-{{ checksum "test-requirements.txt" }}
-      - run:
-          name: install dependencies
-          command: |
-            virtualenv ~/venv
-            . ~/venv/bin/activate
-            pip install tox
-            tox --notest
-      - save_cache:
-          paths:
-            - ~/repo/.tox
-          key: v1-dependencies-<< parameters.python_version >>-{{ checksum "requirements.txt" }}-{{ checksum "test-requirements.txt" }}
+    - restore_cache:
+        keys:
+        - v1-dependencies-<< parameters.python_version >>-{{ checksum "requirements.txt"
+          }}-{{ checksum "test-requirements.txt" }}
+    - run:
+        name: install dependencies
+        command: |
+          virtualenv ~/venv
+          . ~/venv/bin/activate
+          pip install tox
+          tox --notest
+    - save_cache:
+        paths:
+        - ~/repo/.tox
+        key: v1-dependencies-<< parameters.python_version >>-{{ checksum "requirements.txt"
+          }}-{{ checksum "test-requirements.txt" }}
 
   run_tests:
     description: Run tests
     steps:
-      - run:
-          name: Run tests
-          command: |
-            . ~/venv/bin/activate
-            tox
+    - run:
+        name: Run tests
+        command: |
+          . ~/venv/bin/activate
+          tox
