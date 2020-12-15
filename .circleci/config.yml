@@ -19,9 +19,7 @@ workflows:
     - test_python35: *context-to-use
     - test_python36: *context-to-use
     - test_python37: *context-to-use
-    -
-
-      test_python38: *context-to-use
+    - test_python38: *context-to-use
 jobs:
   test_python27:
     docker:
