@@ -39,7 +39,7 @@ ignored-classes=optparse.Values,thread._local,_thread._local
 # no Warning level messages displayed, use"--disable=all --enable=classes
 # --disable=W"
 
-disable=missing-docstring,locally-disabled,too-few-public-methods,unused-argument,fixme,wildcard-import,unused-wildcard-import,super-init-not-called,W0221,no-self-use,too-many-ancestors
+disable=missing-docstring,locally-disabled,too-few-public-methods,unused-argument,fixme,wildcard-import,unused-wildcard-import,super-init-not-called,W0221,no-self-use,too-many-ancestors,super-with-arguments
 
 [DESIGN]
 # Maximum number of arguments for function / method

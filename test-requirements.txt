@@ -1,6 +1,6 @@
 coverage==4.5.4
 Faker==2.0.0
-httpretty==0.9.6
+httpretty==0.9.7
 pycodestyle==2.4.0
 pydocstyle==3.0.0
 pylint>=1.9.5
